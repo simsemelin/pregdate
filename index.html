@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pregdate – Graviditetsberäkning</title>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --pink: #e8a0a0;
+      --pink-light: #f5d5d5;
+      --pink-dark: #c97070;
+      --blue: #4a7fa5;
+      --blue-light: #d0e4f0;
+      --text: #2c2c2c;
+      --text-muted: #666;
+      --bg: #fdf6f6;
+      --card: #ffffff;
+      --border: #e0c8c8;
+      --radius: 12px;
+      --shadow: 0 2px 12px rgba(0,0,0,0.08);
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    header {
+      background: linear-gradient(135deg, var(--pink-dark) 0%, var(--pink) 100%);
+      color: white;
+      padding: 24px 20px 20px;
+      text-align: center;
+    }
+
+    header h1 { font-size: 1.8rem; font-weight: 700; letter-spacing: -0.5px; }
+    header p { font-size: 0.9rem; opacity: 0.85; margin-top: 4px; }
+
+    nav {
+      display: flex;
+      background: white;
+      border-bottom: 1px solid var(--border);
+      overflow-x: auto;
+    }
+
+    nav button {
+      flex: 1;
+      min-width: 120px;
+      padding: 14px 12px;
+      border: none;
+      background: none;
+      cursor: pointer;
+      font-size: 0.82rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      border-bottom: 3px solid transparent;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+
+    nav button.active {
+      color: var(--pink-dark);
+      border-bottom-color: var(--pink-dark);
+    }
+
+    nav button:hover:not(.active) {
+      background: var(--pink-light);
+      color: var(--text);
+    }
+
+    main {
+      max-width: 640px;
+      margin: 0 auto;
+      padding: 24px 16px 60px;
+    }
+
+    .card {
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+
+    .card h2 {
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: var(--blue);
+      margin-bottom: 16px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    input[type="date"], input[type="number"] {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      font-size: 1rem;
+      color: var(--text);
+      background: white;
+      transition: border-color 0.15s;
+      -webkit-appearance: none;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: var(--pink-dark);
+    }
+
+    .field { margin-bottom: 16px; }
+
+    .field-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .result-box {
+      background: var(--pink-light);
+      border-radius: 10px;
+      padding: 16px 20px;
+      margin-top: 8px;
+    }
+
+    .result-box.blue { background: var(--blue-light); }
+
+    .result-main {
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: var(--pink-dark);
+    }
+
+    .result-box.blue .result-main { color: var(--blue); }
+
+    .result-label {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+
+    .result-sub {
+      font-size: 0.88rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .result-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .result-item {
+      background: white;
+      border-radius: 8px;
+      padding: 12px 14px;
+      border: 1px solid var(--border);
+    }
+
+    .result-item .val {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--blue);
+    }
+
+    .result-item .lbl {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+
+    .progress-bar-wrap {
+      background: white;
+      border-radius: 20px;
+      height: 10px;
+      margin-top: 12px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+
+    .progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, var(--pink) 0%, var(--pink-dark) 100%);
+      border-radius: 20px;
+      transition: width 0.4s ease;
+    }
+
+    .progress-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .trimester-badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      margin-top: 8px;
+    }
+
+    .t1 { background: #fde8b4; color: #7a5200; }
+    .t2 { background: #c8efd4; color: #1a6633; }
+    .t3 { background: #d0e4f0; color: #1a4a6e; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.84rem;
+    }
+
+    th {
+      background: var(--pink-light);
+      color: var(--pink-dark);
+      padding: 8px 10px;
+      text-align: left;
+      font-weight: 600;
+      font-size: 0.78rem;
+    }
+
+    td {
+      padding: 7px 10px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    tr:last-child td { border-bottom: none; }
+    tr:nth-child(even) td { background: #fdf6f6; }
+
+    tr.highlight td {
+      background: var(--pink-light);
+      font-weight: 600;
+      color: var(--pink-dark);
+    }
+
+    .info-note {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      background: #f5f5f5;
+      border-radius: 8px;
+      padding: 10px 14px;
+      margin-top: 12px;
+      line-height: 1.5;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 32px 20px;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+
+    .empty-state .icon { font-size: 2.5rem; margin-bottom: 10px; }
+  </style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel">
+const { useState, useMemo } = React;
+
+// ─── Data tables from Pregdate wheel ───────────────────────────────────────
+
+// CRL (mm) → gestational age in days (based on Persson et al. 1978 / Robinson)
+// Weeks 6–13
+const CRL_TABLE = [
+  { crl: 4,  days: 42 }, { crl: 5,  days: 43 }, { crl: 6,  days: 44 },
+  { crl: 7,  days: 45 }, { crl: 8,  days: 46 }, { crl: 9,  days: 47 },
+  { crl: 10, days: 48 }, { crl: 11, days: 49 }, { crl: 12, days: 51 },
+  { crl: 13, days: 52 }, { crl: 14, days: 53 }, { crl: 15, days: 54 },
+  { crl: 16, days: 56 }, { crl: 17, days: 57 }, { crl: 18, days: 58 },
+  { crl: 19, days: 59 }, { crl: 20, days: 61 }, { crl: 21, days: 62 },
+  { crl: 22, days: 63 }, { crl: 23, days: 64 }, { crl: 24, days: 65 },
+  { crl: 25, days: 67 }, { crl: 26, days: 68 }, { crl: 27, days: 69 },
+  { crl: 28, days: 70 }, { crl: 29, days: 71 }, { crl: 30, days: 72 },
+  { crl: 31, days: 73 }, { crl: 33, days: 75 }, { crl: 35, days: 76 },
+  { crl: 37, days: 78 }, { crl: 39, days: 79 }, { crl: 41, days: 81 },
+  { crl: 43, days: 82 }, { crl: 45, days: 83 }, { crl: 48, days: 85 },
+  { crl: 50, days: 86 }, { crl: 53, days: 88 }, { crl: 55, days: 89 },
+  { crl: 58, days: 90 }, { crl: 61, days: 92 }, { crl: 64, days: 93 },
+  { crl: 67, days: 95 }, { crl: 70, days: 96 }, { crl: 73, days: 97 },
+  { crl: 77, days: 99 }, { crl: 81, days: 101 },{ crl: 85, days: 102 },
+  { crl: 89, days: 104 },
+];
+
+// BPD (mm) → gestational age in days (Persson et al. 1978) — weeks 13–40
+const BPD_TABLE = [
+  { bpd: 27, days: 91  }, { bpd: 28, days: 94  }, { bpd: 29, days: 96  },
+  { bpd: 30, days: 99  }, { bpd: 31, days: 102 }, { bpd: 32, days: 104 },
+  { bpd: 33, days: 107 }, { bpd: 34, days: 109 }, { bpd: 35, days: 112 },
+  { bpd: 36, days: 115 }, { bpd: 37, days: 117 }, { bpd: 38, days: 120 },
+  { bpd: 39, days: 122 }, { bpd: 40, days: 125 }, { bpd: 41, days: 127 },
+  { bpd: 42, days: 130 }, { bpd: 43, days: 132 }, { bpd: 44, days: 135 },
+  { bpd: 45, days: 138 }, { bpd: 46, days: 140 }, { bpd: 47, days: 143 },
+  { bpd: 48, days: 145 }, { bpd: 49, days: 148 }, { bpd: 50, days: 151 },
+  { bpd: 51, days: 153 }, { bpd: 52, days: 156 }, { bpd: 53, days: 158 },
+  { bpd: 54, days: 161 }, { bpd: 55, days: 163 }, { bpd: 56, days: 166 },
+  { bpd: 57, days: 169 }, { bpd: 58, days: 171 }, { bpd: 59, days: 174 },
+  { bpd: 60, days: 176 }, { bpd: 61, days: 179 }, { bpd: 62, days: 181 },
+  { bpd: 63, days: 184 }, { bpd: 64, days: 187 }, { bpd: 65, days: 189 },
+  { bpd: 66, days: 192 }, { bpd: 67, days: 194 }, { bpd: 68, days: 197 },
+  { bpd: 69, days: 199 }, { bpd: 70, days: 202 }, { bpd: 71, days: 204 },
+  { bpd: 72, days: 207 }, { bpd: 73, days: 210 }, { bpd: 74, days: 212 },
+  { bpd: 75, days: 215 }, { bpd: 76, days: 217 }, { bpd: 77, days: 220 },
+  { bpd: 78, days: 222 }, { bpd: 79, days: 225 }, { bpd: 80, days: 227 },
+  { bpd: 81, days: 230 }, { bpd: 82, days: 233 }, { bpd: 83, days: 235 },
+  { bpd: 84, days: 238 }, { bpd: 85, days: 240 }, { bpd: 86, days: 243 },
+  { bpd: 87, days: 245 }, { bpd: 88, days: 248 }, { bpd: 89, days: 250 },
+  { bpd: 90, days: 253 }, { bpd: 91, days: 255 }, { bpd: 92, days: 258 },
+  { bpd: 93, days: 261 }, { bpd: 94, days: 263 }, { bpd: 95, days: 266 },
+  { bpd: 96, days: 268 }, { bpd: 97, days: 271 }, { bpd: 98, days: 273 },
+];
+
+// FL (mm) → gestational age days (O'Brien et al. 1981) — approx weeks 13–40
+const FL_TABLE = [
+  { fl: 10, days: 91  }, { fl: 12, days: 95  }, { fl: 14, days: 99  },
+  { fl: 16, days: 103 }, { fl: 18, days: 107 }, { fl: 20, days: 111 },
+  { fl: 22, days: 115 }, { fl: 24, days: 120 }, { fl: 26, days: 124 },
+  { fl: 28, days: 128 }, { fl: 30, days: 132 }, { fl: 32, days: 137 },
+  { fl: 34, days: 141 }, { fl: 36, days: 145 }, { fl: 38, days: 150 },
+  { fl: 40, days: 154 }, { fl: 42, days: 158 }, { fl: 44, days: 163 },
+  { fl: 46, days: 167 }, { fl: 48, days: 171 }, { fl: 50, days: 175 },
+  { fl: 52, days: 180 }, { fl: 54, days: 184 }, { fl: 56, days: 188 },
+  { fl: 58, days: 192 }, { fl: 60, days: 196 }, { fl: 62, days: 200 },
+  { fl: 64, days: 204 }, { fl: 66, days: 208 }, { fl: 68, days: 212 },
+  { fl: 70, days: 216 }, { fl: 72, days: 220 }, { fl: 74, days: 224 },
+  { fl: 76, days: 228 }, { fl: 78, days: 232 }, { fl: 80, days: 236 },
+];
+
+// AD (mm) → gestational age days (Eik-Nes et al. 1982) — approx weeks 13–40
+const AD_TABLE = [
+  { ad: 60,  days: 91  }, { ad: 63,  days: 94  }, { ad: 66,  days: 97  },
+  { ad: 69,  days: 100 }, { ad: 72,  days: 103 }, { ad: 75,  days: 106 },
+  { ad: 78,  days: 109 }, { ad: 81,  days: 112 }, { ad: 84,  days: 115 },
+  { ad: 87,  days: 118 }, { ad: 90,  days: 121 }, { ad: 93,  days: 124 },
+  { ad: 96,  days: 127 }, { ad: 99,  days: 130 }, { ad: 102, days: 133 },
+  { ad: 105, days: 136 }, { ad: 108, days: 139 }, { ad: 111, days: 142 },
+  { ad: 114, days: 145 }, { ad: 117, days: 148 }, { ad: 120, days: 151 },
+  { ad: 123, days: 154 }, { ad: 126, days: 157 }, { ad: 129, days: 160 },
+  { ad: 132, days: 163 }, { ad: 135, days: 166 }, { ad: 138, days: 169 },
+  { ad: 141, days: 172 }, { ad: 144, days: 175 }, { ad: 147, days: 178 },
+  { ad: 150, days: 181 }, { ad: 153, days: 184 }, { ad: 156, days: 187 },
+  { ad: 159, days: 190 }, { ad: 162, days: 193 }, { ad: 165, days: 196 },
+  { ad: 168, days: 199 }, { ad: 171, days: 202 }, { ad: 174, days: 205 },
+  { ad: 177, days: 208 }, { ad: 180, days: 211 }, { ad: 183, days: 214 },
+  { ad: 186, days: 217 }, { ad: 189, days: 220 }, { ad: 192, days: 223 },
+  { ad: 195, days: 226 }, { ad: 198, days: 229 }, { ad: 201, days: 232 },
+  { ad: 204, days: 235 }, { ad: 207, days: 238 }, { ad: 210, days: 241 },
+  { ad: 213, days: 244 }, { ad: 216, days: 247 }, { ad: 219, days: 250 },
+  { ad: 222, days: 253 }, { ad: 225, days: 256 }, { ad: 228, days: 259 },
+  { ad: 231, days: 262 }, { ad: 234, days: 265 }, { ad: 237, days: 268 },
+  { ad: 240, days: 271 }, { ad: 243, days: 274 }, { ad: 246, days: 277 },
+];
+
+// SF (cm) reference — median ± 2SD per week (from Swedish mödravård normkurva)
+const SF_TABLE = [
+  { week: 20, min: 16, median: 20, max: 24 },
+  { week: 21, min: 17, median: 21, max: 25 },
+  { week: 22, min: 18, median: 22, max: 26 },
+  { week: 23, min: 19, median: 23, max: 27 },
+  { week: 24, min: 20, median: 24, max: 28 },
+  { week: 25, min: 21, median: 25, max: 29 },
+  { week: 26, min: 22, median: 26, max: 30 },
+  { week: 27, min: 23, median: 27, max: 31 },
+  { week: 28, min: 24, median: 28, max: 32 },
+  { week: 29, min: 25, median: 29, max: 33 },
+  { week: 30, min: 26, median: 30, max: 34 },
+  { week: 31, min: 27, median: 31, max: 35 },
+  { week: 32, min: 28, median: 32, max: 36 },
+  { week: 33, min: 29, median: 33, max: 37 },
+  { week: 34, min: 30, median: 34, max: 38 },
+  { week: 35, min: 31, median: 35, max: 39 },
+  { week: 36, min: 32, median: 36, max: 40 },
+  { week: 37, min: 32, median: 36, max: 41 },
+  { week: 38, min: 32, median: 36, max: 42 },
+  { week: 39, min: 32, median: 36, max: 42 },
+  { week: 40, min: 32, median: 36, max: 42 },
+  { week: 41, min: 31, median: 35, max: 41 },
+];
+
+// ─── Helper functions ───────────────────────────────────────────────────────
+
+function daysToWeeksStr(days) {
+  const w = Math.floor(days / 7);
+  const d = days % 7;
+  return `${w}+${d}`;
+}
+
+function interpolate(table, key, value) {
+  if (!value || isNaN(value)) return null;
+  const v = Number(value);
+  const sorted = [...table].sort((a, b) => a[key] - b[key]);
+  if (v <= sorted[0][key]) return sorted[0].days;
+  if (v >= sorted[sorted.length - 1][key]) return sorted[sorted.length - 1].days;
+  for (let i = 0; i < sorted.length - 1; i++) {
+    const lo = sorted[i], hi = sorted[i + 1];
+    if (v >= lo[key] && v <= hi[key]) {
+      const frac = (v - lo[key]) / (hi[key] - lo[key]);
+      return Math.round(lo.days + frac * (hi.days - lo.days));
+    }
+  }
+  return null;
+}
+
+// Hadlock formula: log10(EFW) = 1.3596 - 0.00386*AC*FL + 0.0064*HC + 0.00061*BPD*AC + 0.0424*AC + 0.174*FL
+// Simplified Shepard (BPD + AD only): log10(BW) = -1.7492 + 0.166*BPD + 0.046*AD - 0.002646*AD*BPD
+// Using Hadlock with BPD + AD (most available):
+function estimateWeight(bpd, ad) {
+  if (!bpd || !ad) return null;
+  const b = Number(bpd), a = Number(ad);
+  // Shepard formula (common in Swedish practice):
+  const logW = -1.7492 + 0.166 * b + 0.046 * a - (0.002646 * a * b);
+  return Math.round(Math.pow(10, logW));
+}
+
+function formatDate(date) {
+  return date.toLocaleDateString('sv-SE', { year: 'numeric', month: 'long', day: 'numeric' });
+}
+
+function getTrimester(totalDays) {
+  if (totalDays < 91) return { label: 'Trimester 1', cls: 't1' };
+  if (totalDays < 196) return { label: 'Trimester 2', cls: 't2' };
+  return { label: 'Trimester 3', cls: 't3' };
+}
+
+// ─── Tab components ─────────────────────────────────────────────────────────
+
+function SMTab() {
+  const [sm, setSm] = useState('');
+
+  const result = useMemo(() => {
+    if (!sm) return null;
+    const smDate = new Date(sm);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    smDate.setHours(0, 0, 0, 0);
+
+    // VP = SM + 280 days (39w6d)
+    const vpDate = new Date(smDate);
+    vpDate.setDate(vpDate.getDate() + 280);
+
+    const daysSinceSM = Math.floor((today - smDate) / (1000 * 60 * 60 * 24));
+    const daysLeft = Math.floor((vpDate - today) / (1000 * 60 * 60 * 24));
+
+    if (daysSinceSM < 0) {
+      return { future: true, vpDate };
+    }
+
+    const weeks = Math.floor(daysSinceSM / 7);
+    const days = daysSinceSM % 7;
+    const progressPct = Math.min(100, Math.max(0, (daysSinceSM / 280) * 100));
+    const trimester = getTrimester(daysSinceSM);
+
+    return {
+      weeks, days, daysSinceSM, daysLeft, vpDate, progressPct, trimester, future: false
+    };
+  }, [sm]);
+
+  return (
+    <div>
+      <div className="card">
+        <h2>📅 SM-datum → Graviditetsvecka & VP</h2>
+        <div className="field">
+          <label>SM – Sista menstruationsdagens första dag</label>
+          <input type="date" value={sm} onChange={e => setSm(e.target.value)}
+            max={new Date().toISOString().split('T')[0]} />
+        </div>
+
+        {!sm && (
+          <div className="empty-state">
+            <div className="icon">🗓️</div>
+            Ange SM-datum för att beräkna graviditetsvecka
+          </div>
+        )}
+
+        {result && result.future && (
+          <div className="result-box">
+            <div className="result-label">Väntad förlossningsdag (VP)</div>
+            <div className="result-main">{formatDate(result.vpDate)}</div>
+            <div className="result-sub">SM-datumet är i framtiden</div>
+          </div>
+        )}
+
+        {result && !result.future && (
+          <>
+            <div className="result-box">
+              <div className="result-label">Aktuell graviditetsvecka</div>
+              <div className="result-main">{result.weeks}+{result.days}</div>
+              <div className="result-sub">
+                Vecka {result.weeks}, dag {result.days} &nbsp;·&nbsp; Dag {result.daysSinceSM} sedan SM
+              </div>
+              <span className={`trimester-badge ${result.trimester.cls}`}>{result.trimester.label}</span>
+
+              <div className="progress-bar-wrap">
+                <div className="progress-bar" style={{ width: `${result.progressPct}%` }} />
+              </div>
+              <div className="progress-label">
+                <span>SM (0+0)</span>
+                <span>{Math.round(result.progressPct)}%</span>
+                <span>VP (39+6)</span>
+              </div>
+            </div>
+
+            <div className="result-grid">
+              <div className="result-item">
+                <div className="val">{formatDate(result.vpDate)}</div>
+                <div className="lbl">Väntad förlossningsdag (VP)</div>
+              </div>
+              <div className="result-item">
+                <div className="val">{result.daysLeft < 0 ? `${Math.abs(result.daysLeft)} dagar sedan VP` : `${result.daysLeft} dagar`}</div>
+                <div className="lbl">{result.daysLeft < 0 ? 'Passerat VP' : 'Kvar till VP'}</div>
+              </div>
+            </div>
+          </>
+        )}
+      </div>
+
+      <div className="info-note">
+        VP beräknas som SM + 280 dagar (39+6). Graviditetslängden anges i fullbordade veckor och dagar (0–6).
+      </div>
+    </div>
+  );
+}
+
+function ULJudTab() {
+  const [crl, setCrl] = useState('');
+  const [bpd, setBpd] = useState('');
+  const [fl, setFl] = useState('');
+  const [ad, setAd] = useState('');
+
+  const results = useMemo(() => {
+    const out = [];
+    if (crl) {
+      const d = interpolate(CRL_TABLE, 'crl', crl);
+      if (d) out.push({ label: 'CRL', value: `${Number(crl)} mm`, days: d });
+    }
+    if (bpd) {
+      const d = interpolate(BPD_TABLE, 'bpd', bpd);
+      if (d) out.push({ label: 'BPD', value: `${Number(bpd)} mm`, days: d });
+    }
+    if (fl) {
+      const d = interpolate(FL_TABLE, 'fl', fl);
+      if (d) out.push({ label: 'FL', value: `${Number(fl)} mm`, days: d });
+    }
+    if (ad) {
+      const d = interpolate(AD_TABLE, 'ad', ad);
+      if (d) out.push({ label: 'AD', value: `${Number(ad)} mm`, days: d });
+    }
+    return out;
+  }, [crl, bpd, fl, ad]);
+
+  const avgDays = useMemo(() => {
+    if (!results.length) return null;
+    return Math.round(results.reduce((s, r) => s + r.days, 0) / results.length);
+  }, [results]);
+
+  const weight = estimateWeight(bpd, ad);
+
+  return (
+    <div>
+      <div className="card">
+        <h2>🔬 Ultraljudsmått → Gestationsålder</h2>
+        <div className="field-row">
+          <div className="field">
+            <label>CRL – Crown-rump length (mm)</label>
+            <input type="number" placeholder="t.ex. 45" min="1" max="100"
+              value={crl} onChange={e => setCrl(e.target.value)} />
+          </div>
+          <div className="field">
+            <label>BPD – Biparietaldiameter (mm)</label>
+            <input type="number" placeholder="t.ex. 65" min="20" max="100"
+              value={bpd} onChange={e => setBpd(e.target.value)} />
+          </div>
+        </div>
+        <div className="field-row">
+          <div className="field">
+            <label>FL – Femurlängd (mm)</label>
+            <input type="number" placeholder="t.ex. 50" min="5" max="85"
+              value={fl} onChange={e => setFl(e.target.value)} />
+          </div>
+          <div className="field">
+            <label>AD – Abdominaldiameter (mm)</label>
+            <input type="number" placeholder="t.ex. 150" min="40" max="260"
+              value={ad} onChange={e => setAd(e.target.value)} />
+          </div>
+        </div>
+
+        {!results.length && (
+          <div className="empty-state">
+            <div className="icon">📏</div>
+            Ange ett eller flera mått ovan
+          </div>
+        )}
+
+        {results.length > 0 && (
+          <>
+            <div className="result-grid">
+              {results.map(r => (
+                <div key={r.label} className="result-item">
+                  <div className="val">{daysToWeeksStr(r.days)}</div>
+                  <div className="lbl">{r.label} = {r.value}</div>
+                </div>
+              ))}
+            </div>
+
+            {results.length > 1 && (
+              <div className="result-box blue" style={{ marginTop: 12 }}>
+                <div className="result-label">Medelvärde gestationsålder</div>
+                <div className="result-main">{daysToWeeksStr(avgDays)}</div>
+                <div className="result-sub">Baserat på {results.length} mått · {avgDays} dagar</div>
+              </div>
+            )}
+          </>
+        )}
+      </div>
+
+      {(bpd || ad) && weight && (
+        <div className="card">
+          <h2>⚖️ Uppskattad fostervikt</h2>
+          <div className="result-box">
+            <div className="result-label">Fostervikt (Shepard-formel)</div>
+            <div className="result-main">{weight.toLocaleString('sv-SE')} g</div>
+            <div className="result-sub">
+              Baserat på BPD{bpd ? ` = ${bpd} mm` : ' saknas'}
+              {' '}och AD{ad ? ` = ${ad} mm` : ' saknas'}
+            </div>
+          </div>
+          <div className="info-note">
+            Shepard-formeln: log₁₀(EFW) = −1.7492 + 0.166×BPD + 0.046×AD − 0.002646×AD×BPD.
+            Kräver både BPD och AD.
+          </div>
+        </div>
+      )}
+
+      <div className="info-note">
+        Referensvärden: CRL (Persson et al. 1978), BPD (Persson et al. 1978), 
+        AD (Eik-Nes et al. 1982), FL (O'Brien et al. 1981). 
+        Samma referenser som original Pregdate-hjulet.
+      </div>
+    </div>
+  );
+}
+
+function SFTab() {
+  const [sfVal, setSfVal] = useState('');
+  const [weekVal, setWeekVal] = useState('');
+
+  const currentRow = useMemo(() => {
+    if (!weekVal) return null;
+    return SF_TABLE.find(r => r.week === Number(weekVal)) || null;
+  }, [weekVal]);
+
+  const sfStatus = useMemo(() => {
+    if (!currentRow || !sfVal) return null;
+    const v = Number(sfVal);
+    if (v < currentRow.min) return { label: 'Under -2SD', color: '#c97070' };
+    if (v > currentRow.max) return { label: 'Över +2SD', color: '#c97070' };
+    if (v < currentRow.median - 1) return { label: 'Inom normalintervall (under median)', color: '#4a7fa5' };
+    if (v > currentRow.median + 1) return { label: 'Inom normalintervall (över median)', color: '#4a7fa5' };
+    return { label: 'Inom normalintervall (nära median)', color: '#2a7a4a' };
+  }, [currentRow, sfVal]);
+
+  return (
+    <div>
+      <div className="card">
+        <h2>📐 Symfys-fundusmått (SF)</h2>
+        <div className="field-row">
+          <div className="field">
+            <label>Graviditetsvecka (20–41)</label>
+            <input type="number" placeholder="t.ex. 28" min="20" max="41"
+              value={weekVal} onChange={e => setWeekVal(e.target.value)} />
+          </div>
+          <div className="field">
+            <label>Uppmätt SF (cm)</label>
+            <input type="number" placeholder="t.ex. 28" min="10" max="50"
+              value={sfVal} onChange={e => setSfVal(e.target.value)} />
+          </div>
+        </div>
+
+        {currentRow && (
+          <div className="result-box" style={sfStatus && { borderLeft: `4px solid ${sfStatus.color}` }}>
+            <div className="result-label">Referensvärden vecka {currentRow.week}</div>
+            <div className="result-main">{currentRow.min}–{currentRow.max} cm</div>
+            <div className="result-sub">Median: {currentRow.median} cm · ±2SD: {currentRow.min}–{currentRow.max} cm</div>
+            {sfStatus && (
+              <div style={{ marginTop: 8, fontSize: '0.88rem', fontWeight: 600, color: sfStatus.color }}>
+                {sfVal} cm → {sfStatus.label}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      <div className="card">
+        <h2>📊 SF-referenstabell (vecka 20–41)</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Vecka</th>
+              <th>Minimum (−2SD)</th>
+              <th>Median</th>
+              <th>Maximum (+2SD)</th>
+            </tr>
+          </thead>
+          <tbody>
+            {SF_TABLE.map(row => (
+              <tr key={row.week} className={row.week === Number(weekVal) ? 'highlight' : ''}>
+                <td><strong>{row.week}</strong></td>
+                <td>{row.min} cm</td>
+                <td>{row.median} cm</td>
+                <td>{row.max} cm</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <div className="info-note">
+        SF-måtten grundar sig på mödravårdsjournalens symfus-funduskurvor och angergränserna för ±2 standarddeviationer, 
+        i enlighet med original Pregdate-hjulet.
+      </div>
+    </div>
+  );
+}
+
+// ─── App shell ───────────────────────────────────────────────────────────────
+
+const TABS = [
+  { id: 'sm',  label: '📅 SM & VP' },
+  { id: 'ul',  label: '🔬 Ultraljud' },
+  { id: 'sf',  label: '📐 SF-mått' },
+];
+
+function App() {
+  const [tab, setTab] = useState('sm');
+
+  return (
+    <>
+      <header>
+        <h1>Pregdate</h1>
+        <p>Digital graviditetsberäkning</p>
+      </header>
+      <nav>
+        {TABS.map(t => (
+          <button key={t.id} className={tab === t.id ? 'active' : ''}
+            onClick={() => setTab(t.id)}>
+            {t.label}
+          </button>
+        ))}
+      </nav>
+      <main>
+        {tab === 'sm' && <SMTab />}
+        {tab === 'ul' && <ULJudTab />}
+        {tab === 'sf' && <SFTab />}
+      </main>
+    </>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
