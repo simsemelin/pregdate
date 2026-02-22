@@ -740,12 +740,198 @@ function SFTab() {
   );
 }
 
+// ─── BMI & Viktuppgång ───────────────────────────────────────────────────────
+
+// Rekommenderad viktuppgång per pre-graviditetsBMI (IOM 2009 / SBU)
+const WEIGHT_GAIN = [
+  { label: 'Undervikt',    bmiMin: 0,    bmiMax: 18.5, gainMin: 12.5, gainMax: 18,   gainTwin: '22.7–28.1' },
+  { label: 'Normalvikt',   bmiMin: 18.5, bmiMax: 25,   gainMin: 11.5, gainMax: 16,   gainTwin: '16.8–24.5' },
+  { label: 'Övervikt',     bmiMin: 25,   bmiMax: 30,   gainMin: 7,    gainMax: 11.5, gainTwin: '14.1–22.7' },
+  { label: 'Fetma',        bmiMin: 30,   bmiMax: 999,  gainMin: 5,    gainMax: 9,    gainTwin: '11.3–19.1' },
+];
+
+// Viktuppgång per trimester (ungefärligt enligt IOM)
+// T1: ca 0.5–2 kg totalt, T2+T3: ~0.35–0.5 kg/vecka (normalvikt)
+function getWeeklyRate(bmiCategory) {
+  if (bmiCategory === 'Undervikt')  return { low: 0.44, high: 0.58 };
+  if (bmiCategory === 'Normalvikt') return { low: 0.35, high: 0.50 };
+  if (bmiCategory === 'Övervikt')   return { low: 0.23, high: 0.33 };
+  return { low: 0.17, high: 0.27 }; // Fetma
+}
+
+function BMITab() {
+  const [height, setHeight] = useState('');
+  const [weight, setWeight] = useState('');
+  const [currentWeight, setCurrentWeight] = useState('');
+  const [gestWeek, setGestWeek] = useState('');
+  const [twins, setTwins] = useState(false);
+
+  const bmi = useMemo(() => {
+    if (!height || !weight) return null;
+    const h = Number(height) / 100;
+    const w = Number(weight);
+    return Math.round((w / (h * h)) * 10) / 10;
+  }, [height, weight]);
+
+  const category = useMemo(() => {
+    if (!bmi) return null;
+    return WEIGHT_GAIN.find(c => bmi >= c.bmiMin && bmi < c.bmiMax) || null;
+  }, [bmi]);
+
+  const currentGain = useMemo(() => {
+    if (!weight || !currentWeight) return null;
+    return Math.round((Number(currentWeight) - Number(weight)) * 10) / 10;
+  }, [weight, currentWeight]);
+
+  const expectedGain = useMemo(() => {
+    if (!category || !gestWeek) return null;
+    const week = Number(gestWeek);
+    const rate = getWeeklyRate(category.label);
+    // T1 gain ~0.5–2 kg, then weekly rate for remaining weeks
+    const t1 = week <= 13 ? { low: week * 0.04, high: week * 0.15 } : { low: 0.5, high: 2 };
+    if (week <= 13) return { low: Math.round(t1.low * 10)/10, high: Math.round(t1.high * 10)/10 };
+    const weeksAfterT1 = week - 13;
+    return {
+      low:  Math.round((0.5 + weeksAfterT1 * rate.low)  * 10) / 10,
+      high: Math.round((2.0 + weeksAfterT1 * rate.high) * 10) / 10,
+    };
+  }, [category, gestWeek]);
+
+  const gainStatus = useMemo(() => {
+    if (currentGain === null || !expectedGain) return null;
+    if (currentGain < expectedGain.low - 1)  return { label: 'Under rekommenderat intervall', color: '#c97070' };
+    if (currentGain > expectedGain.high + 1) return { label: 'Över rekommenderat intervall', color: '#c97070' };
+    return { label: 'Inom rekommenderat intervall', color: '#2a7a4a' };
+  }, [currentGain, expectedGain]);
+
+  const bmiColor = bmi
+    ? bmi < 18.5 ? '#4a7fa5'
+    : bmi < 25   ? '#2a7a4a'
+    : bmi < 30   ? '#b87333'
+    : '#c97070'
+    : null;
+
+  return (
+    <div>
+      <div className="card">
+        <h2>⚖️ Pre-graviditetsBMI</h2>
+        <div className="field-row">
+          <div className="field">
+            <label>Längd (cm)</label>
+            <input type="number" placeholder="t.ex. 168" min="140" max="210"
+              value={height} onChange={e => setHeight(e.target.value)} />
+          </div>
+          <div className="field">
+            <label>Vikt före graviditet (kg)</label>
+            <input type="number" placeholder="t.ex. 65" min="35" max="200"
+              value={weight} onChange={e => setWeight(e.target.value)} />
+          </div>
+        </div>
+
+        {bmi && category && (
+          <div className="result-box" style={{ borderLeft: `4px solid ${bmiColor}` }}>
+            <div className="result-label">BMI (pre-graviditet)</div>
+            <div className="result-main" style={{ color: bmiColor }}>{bmi}</div>
+            <div className="result-sub" style={{ fontWeight: 600, color: bmiColor }}>{category.label}</div>
+            <div className="result-sub" style={{ marginTop: 8 }}>
+              Rekommenderad viktuppgång: <strong>{twins ? category.gainTwin : `${category.gainMin}–${category.gainMax} kg`}</strong>
+              {twins && <span> (tvillingar)</span>}
+            </div>
+          </div>
+        )}
+
+        <div className="field" style={{ marginTop: 16 }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
+            <input type="checkbox" checked={twins} onChange={e => setTwins(e.target.checked)}
+              style={{ width: 'auto', accentColor: 'var(--pink-dark)' }} />
+            Tvillinggraviditet
+          </label>
+        </div>
+      </div>
+
+      {category && (
+        <div className="card">
+          <h2>📈 Aktuell viktuppgång</h2>
+          <div className="field-row">
+            <div className="field">
+              <label>Aktuell vikt (kg)</label>
+              <input type="number" placeholder="t.ex. 72" min="35" max="250"
+                value={currentWeight} onChange={e => setCurrentWeight(e.target.value)} />
+            </div>
+            <div className="field">
+              <label>Graviditetsvecka</label>
+              <input type="number" placeholder="t.ex. 28" min="1" max="42"
+                value={gestWeek} onChange={e => setGestWeek(e.target.value)} />
+            </div>
+          </div>
+
+          {currentGain !== null && (
+            <div className="result-grid">
+              <div className="result-item">
+                <div className="val" style={{ color: currentGain >= 0 ? 'var(--blue)' : 'var(--pink-dark)' }}>
+                  {currentGain >= 0 ? '+' : ''}{currentGain} kg
+                </div>
+                <div className="lbl">Faktisk viktuppgång</div>
+              </div>
+              {expectedGain && (
+                <div className="result-item">
+                  <div className="val">+{expectedGain.low}–{expectedGain.high} kg</div>
+                  <div className="lbl">Förväntat v.{gestWeek}</div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {gainStatus && (
+            <div className="result-box" style={{ marginTop: 12, borderLeft: `4px solid ${gainStatus.color}` }}>
+              <div style={{ fontWeight: 600, color: gainStatus.color }}>{gainStatus.label}</div>
+              <div className="result-sub" style={{ marginTop: 4 }}>
+                Totalrekommendation: {twins ? category.gainTwin : `${category.gainMin}–${category.gainMax} kg`}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      <div className="card">
+        <h2>📊 Referenstabell – rekommenderad viktuppgång</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>BMI-kategori</th>
+              <th>BMI</th>
+              <th>Singleton</th>
+              <th>Tvillingar</th>
+            </tr>
+          </thead>
+          <tbody>
+            {WEIGHT_GAIN.map(row => (
+              <tr key={row.label} className={category && category.label === row.label ? 'highlight' : ''}>
+                <td><strong>{row.label}</strong></td>
+                <td>{row.bmiMin}–{row.bmiMax === 999 ? '≥30' : row.bmiMax}</td>
+                <td>{row.gainMin}–{row.gainMax} kg</td>
+                <td>{row.gainTwin} kg</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <div className="info-note">
+        Baserat på IOM (Institute of Medicine) 2009 riktlinjer, tillämpade i svenska mödravårdsriktlinjer.
+        Viktuppgången under T1 är ca 0,5–2 kg totalt; därefter tillkommer veckovis uppgång enligt kategori.
+      </div>
+    </div>
+  );
+}
+
 // ─── App shell ───────────────────────────────────────────────────────────────
 
 const TABS = [
   { id: 'sm',  label: '📅 SM & VP' },
   { id: 'ul',  label: '🔬 Ultraljud' },
   { id: 'sf',  label: '📐 SF-mått' },
+  { id: 'bmi', label: '⚖️ BMI & Vikt' },
 ];
 
 function App() {
@@ -769,6 +955,7 @@ function App() {
         {tab === 'sm' && <SMTab />}
         {tab === 'ul' && <ULJudTab />}
         {tab === 'sf' && <SFTab />}
+        {tab === 'bmi' && <BMITab />}
       </main>
     </>
   );
