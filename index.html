@@ -443,16 +443,26 @@ function getTrimester(totalDays) {
 // ─── Tab components ─────────────────────────────────────────────────────────
 
 function SMTab() {
+  const [mode, setMode] = useState('sm'); // 'sm' | 'vp'
   const [sm, setSm] = useState('');
+  const [vp, setVp] = useState('');
 
   const result = useMemo(() => {
-    if (!sm) return null;
-    const smDate = new Date(sm);
+    // Derive SM date depending on mode
+    let smDate;
+    if (mode === 'sm') {
+      if (!sm) return null;
+      smDate = new Date(sm);
+    } else {
+      if (!vp) return null;
+      smDate = new Date(vp);
+      smDate.setDate(smDate.getDate() - 280); // BP - 280 days = SM
+    }
+
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     smDate.setHours(0, 0, 0, 0);
 
-    // VP = SM + 280 days (39w6d)
     const vpDate = new Date(smDate);
     vpDate.setDate(vpDate.getDate() + 280);
 
@@ -460,7 +470,7 @@ function SMTab() {
     const daysLeft = Math.floor((vpDate - today) / (1000 * 60 * 60 * 24));
 
     if (daysSinceSM < 0) {
-      return { future: true, vpDate };
+      return { future: true, vpDate, smDate };
     }
 
     const weeks = Math.floor(daysSinceSM / 7);
@@ -469,32 +479,79 @@ function SMTab() {
     const trimester = getTrimester(daysSinceSM);
 
     return {
-      weeks, days, daysSinceSM, daysLeft, vpDate, progressPct, trimester, future: false
+      weeks, days, daysSinceSM, daysLeft, vpDate, smDate, progressPct, trimester, future: false
     };
-  }, [sm]);
+  }, [sm, vp, mode]);
+
+  const toggleStyle = {
+    display: 'flex',
+    background: '#f0e8e8',
+    borderRadius: 8,
+    padding: 3,
+    marginBottom: 16,
+    gap: 3,
+  };
+  const toggleBtn = (active) => ({
+    flex: 1,
+    padding: '8px 12px',
+    border: 'none',
+    borderRadius: 6,
+    cursor: 'pointer',
+    fontSize: '0.85rem',
+    fontWeight: 500,
+    background: active ? 'white' : 'transparent',
+    color: active ? 'var(--pink-dark)' : 'var(--text-muted)',
+    boxShadow: active ? '0 1px 4px rgba(0,0,0,0.1)' : 'none',
+    transition: 'all 0.15s',
+  });
 
   return (
     <div>
       <div className="card">
-        <h2>📅 SM-datum → Graviditetsvecka & VP</h2>
-        <div className="field">
-          <label>SM – Sista menstruationsdagens första dag</label>
-          <input type="date" value={sm} onChange={e => setSm(e.target.value)}
-            max={new Date().toISOString().split('T')[0]} />
+        <h2>📅 Graviditetsvecka & datum</h2>
+
+        <div style={toggleStyle}>
+          <button style={toggleBtn(mode === 'sm')} onClick={() => setMode('sm')}>
+            Från SM-datum
+          </button>
+          <button style={toggleBtn(mode === 'vp')} onClick={() => setMode('vp')}>
+            Från BP-datum
+          </button>
         </div>
 
-        {!sm && (
+        {mode === 'sm' && (
+          <div className="field">
+            <label>SM – Sista menstruationsdagens första dag</label>
+            <input type="date" value={sm} onChange={e => setSm(e.target.value)} />
+          </div>
+        )}
+
+        {mode === 'vp' && (
+          <div className="field">
+            <label>BP – Beräknat förlossningsdatum (beräknat datum)</label>
+            <input type="date" value={vp} onChange={e => setVp(e.target.value)} />
+          </div>
+        )}
+
+        {!sm && mode === 'sm' && (
           <div className="empty-state">
             <div className="icon">🗓️</div>
             Ange SM-datum för att beräkna graviditetsvecka
           </div>
         )}
 
+        {!vp && mode === 'vp' && (
+          <div className="empty-state">
+            <div className="icon">🗓️</div>
+            Ange BP-datum för att beräkna graviditetsvecka
+          </div>
+        )}
+
         {result && result.future && (
           <div className="result-box">
-            <div className="result-label">Väntad förlossningsdag (VP)</div>
-            <div className="result-main">{formatDate(result.vpDate)}</div>
-            <div className="result-sub">SM-datumet är i framtiden</div>
+            <div className="result-label">{mode === 'sm' ? 'Beräknat förlossningsdatum (BP)' : 'SM-datum (beräknat)'}</div>
+            <div className="result-main">{formatDate(mode === 'sm' ? result.vpDate : result.smDate)}</div>
+            <div className="result-sub">Graviditeten har ännu inte börjat enligt angivet datum</div>
           </div>
         )}
 
@@ -514,27 +571,99 @@ function SMTab() {
               <div className="progress-label">
                 <span>SM (0+0)</span>
                 <span>{Math.round(result.progressPct)}%</span>
-                <span>VP (39+6)</span>
+                <span>BP (39+6)</span>
               </div>
             </div>
 
             <div className="result-grid">
               <div className="result-item">
                 <div className="val">{formatDate(result.vpDate)}</div>
-                <div className="lbl">Väntad förlossningsdag (VP)</div>
+                <div className="lbl">Beräknat förlossningsdatum (BP)</div>
               </div>
               <div className="result-item">
-                <div className="val">{result.daysLeft < 0 ? `${Math.abs(result.daysLeft)} dagar sedan VP` : `${result.daysLeft} dagar`}</div>
-                <div className="lbl">{result.daysLeft < 0 ? 'Passerat VP' : 'Kvar till VP'}</div>
+                <div className="val">{result.daysLeft < 0 ? `${Math.abs(result.daysLeft)} dagar sedan BP` : `${result.daysLeft} dagar`}</div>
+                <div className="lbl">{result.daysLeft < 0 ? 'Passerat BP' : 'Kvar till BP'}</div>
+              </div>
+              <div className="result-item">
+                <div className="val">{formatDate(result.smDate)}</div>
+                <div className="lbl">SM-datum (beräknat)</div>
+              </div>
+              <div className="result-item">
+                <div className="val">{result.daysSinceSM} dagar</div>
+                <div className="lbl">Sedan SM</div>
               </div>
             </div>
           </>
         )}
       </div>
 
+      {result && !result.future && <WeekLookup smDate={result.smDate} currentWeeks={result.weeks} />}
+
       <div className="info-note">
-        VP beräknas som SM + 280 dagar (39+6). Graviditetslängden anges i fullbordade veckor och dagar (0–6).
+        BP = SM + 280 dagar (39+6). Vid inmatning av BP räknas SM-datum bakåt med samma formel.
+        Graviditetslängden anges i fullbordade veckor och dagar (0–6).
       </div>
+    </div>
+  );
+}
+
+function WeekLookup({ smDate, currentWeeks }) {
+  const [lookupWeek, setLookupWeek] = useState(String(currentWeeks));
+
+  const weekDates = useMemo(() => {
+    const w = Number(lookupWeek);
+    if (isNaN(w) || w < 0 || w > 43) return null;
+    return Array.from({ length: 7 }, (_, d) => {
+      const date = new Date(smDate);
+      date.setDate(date.getDate() + w * 7 + d + 1);
+      return { day: d, date };
+    });
+  }, [lookupWeek, smDate]);
+
+  const DAYS_SV = ['Måndag', 'Tisdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lördag', 'Söndag'];
+  const formatShort = (date) => date.toLocaleDateString('sv-SE', { day: 'numeric', month: 'short', year: 'numeric' });
+  const getDayName = (date) => DAYS_SV[(date.getDay() + 6) % 7]; // convert Sun=0 to Mon=0
+
+  const isToday = (date) => {
+    const today = new Date();
+    return date.getDate() === today.getDate() &&
+      date.getMonth() === today.getMonth() &&
+      date.getFullYear() === today.getFullYear();
+  };
+
+  return (
+    <div className="card">
+      <h2>🗓️ Datum för specifik vecka</h2>
+      <div className="field">
+        <label>Välj graviditetsvecka (0–43)</label>
+        <input
+          type="number" min="0" max="43"
+          value={lookupWeek}
+          onChange={e => setLookupWeek(e.target.value)}
+          placeholder="t.ex. 29"
+        />
+      </div>
+
+      {weekDates && (
+        <table>
+          <thead>
+            <tr>
+              <th>Veckodag</th>
+              <th>Datum</th>
+              <th>Dag</th>
+            </tr>
+          </thead>
+          <tbody>
+            {weekDates.map(({ day, date }) => (
+              <tr key={day} className={isToday(date) ? 'highlight' : ''}>
+                <td><strong>{lookupWeek}+{day}</strong></td>
+                <td>{formatShort(date)}{isToday(date) && <span style={{ marginLeft: 6, fontSize: '0.75rem', color: 'var(--pink-dark)', fontWeight: 600 }}>← idag</span>}</td>
+                <td style={{ color: 'var(--text-muted)' }}>{getDayName(date)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
     </div>
   );
 }
@@ -925,13 +1054,208 @@ function BMITab() {
   );
 }
 
+// ─── Bokningsplan ────────────────────────────────────────────────────────────
+
+const BESOK = [
+  { nr: 2,  label: 'Andra besöket',   weekMin: 10, dayMin: 2, weekMax: 12, dayMax: 0 },
+  { nr: 3,  label: 'Tredje besöket',  weekMin: 20, dayMin: 0, weekMax: 20, dayMax: 6 },
+  { nr: 4,  label: 'Fjärde besöket',  weekMin: 25, dayMin: 0, weekMax: 25, dayMax: 6 },
+  { nr: 5,  label: 'Femte besöket',   weekMin: 29, dayMin: 0, weekMax: 29, dayMax: 6 },
+  { nr: 6,  label: 'Sjätte besöket',  weekMin: 32, dayMin: 0, weekMax: 32, dayMax: 6 },
+  { nr: 7,  label: 'Sjunde besöket',  weekMin: 35, dayMin: 0, weekMax: 35, dayMax: 6 },
+  { nr: 8,  label: 'Åttonde besöket', weekMin: 37, dayMin: 0, weekMax: 37, dayMax: 6 },
+  { nr: 9,  label: 'Nionde besöket',  weekMin: 39, dayMin: 0, weekMax: 39, dayMax: 6 },
+  { nr: 10, label: 'Tionde besöket',  weekMin: 40, dayMin: 0, weekMax: 40, dayMax: 6 },
+  { nr: 11, label: 'Elfte besöket',   weekMin: 41, dayMin: 0, weekMax: 41, dayMax: 0 },
+];
+
+function addDays(date, days) {
+  const d = new Date(date);
+  d.setDate(d.getDate() + days);
+  return d;
+}
+
+function formatDateShort(date) {
+  return date.toLocaleDateString('sv-SE', { weekday: 'short', day: 'numeric', month: 'short' });
+}
+
+function formatDateFull(date) {
+  return date.toLocaleDateString('sv-SE', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+}
+
+function isSingleDay(besok) {
+  return besok.weekMin === besok.weekMax && besok.dayMin === besok.dayMax;
+}
+
+function BokningsTab() {
+  const [mode, setMode] = useState('sm');
+  const [sm, setSm] = useState('');
+  const [bp, setBp] = useState('');
+  const [copied, setCopied] = useState(false);
+
+  const smDate = useMemo(() => {
+    if (mode === 'sm') {
+      if (!sm) return null;
+      const d = new Date(sm);
+      d.setHours(0, 0, 0, 0);
+      return d;
+    } else {
+      if (!bp) return null;
+      const d = new Date(bp);
+      d.setHours(0, 0, 0, 0);
+      d.setDate(d.getDate() - 280);
+      return d;
+    }
+  }, [sm, bp, mode]);
+
+  const bookings = useMemo(() => {
+    if (!smDate) return null;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return BESOK.map(b => {
+      const fromDate = addDays(smDate, b.weekMin * 7 + b.dayMin + 1);
+      const toDate   = addDays(smDate, b.weekMax * 7 + b.dayMax + 1);
+      const single   = isSingleDay(b);
+      const isPast   = toDate < today;
+      const isCurrent = fromDate <= today && today <= toDate;
+      return { ...b, fromDate, toDate, single, isPast, isCurrent };
+    });
+  }, [smDate]);
+
+  const bpDate = useMemo(() => {
+    if (!smDate) return null;
+    return addDays(smDate, 280);
+  }, [smDate]);
+
+  const handleCopy = () => {
+    if (!bookings) return;
+    const lines = bookings.map(b =>
+      b.single
+        ? `${b.label} (${b.weekMin}+${b.dayMin}): ${formatDateFull(b.fromDate)}`
+        : `${b.label} (${b.weekMin}+${b.dayMin}–${b.weekMax}+${b.dayMax}): ${formatDateShort(b.fromDate)} – ${formatDateShort(b.toDate)}`
+    );
+    const header = `Bokningsplan\nSM: ${smDate.toLocaleDateString('sv-SE')} · BP: ${bpDate.toLocaleDateString('sv-SE')}\n\n`;
+    navigator.clipboard.writeText(header + lines.join('\n'));
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const toggleStyle = {
+    display: 'flex', background: '#f0e8e8', borderRadius: 8, padding: 3, marginBottom: 16, gap: 3,
+  };
+  const toggleBtn = (active) => ({
+    flex: 1, padding: '8px 12px', border: 'none', borderRadius: 6, cursor: 'pointer',
+    fontSize: '0.85rem', fontWeight: 500,
+    background: active ? 'white' : 'transparent',
+    color: active ? 'var(--pink-dark)' : 'var(--text-muted)',
+    boxShadow: active ? '0 1px 4px rgba(0,0,0,0.1)' : 'none',
+    transition: 'all 0.15s',
+  });
+
+  return (
+    <div>
+      <div className="card">
+        <h2>📋 Bokningsplan – basprogrammet</h2>
+
+        <div style={toggleStyle}>
+          <button style={toggleBtn(mode === 'sm')} onClick={() => setMode('sm')}>Från SM-datum</button>
+          <button style={toggleBtn(mode === 'bp')} onClick={() => setMode('bp')}>Från BP-datum</button>
+        </div>
+
+        {mode === 'sm' && (
+          <div className="field">
+            <label>SM – Sista menstruationsdagens första dag</label>
+            <input type="date" value={sm} onChange={e => setSm(e.target.value)} />
+          </div>
+        )}
+        {mode === 'bp' && (
+          <div className="field">
+            <label>BP – Beräknat förlossningsdatum</label>
+            <input type="date" value={bp} onChange={e => setBp(e.target.value)} />
+          </div>
+        )}
+
+        {!smDate && (
+          <div className="empty-state">
+            <div className="icon">📋</div>
+            Ange SM- eller BP-datum för att se bokningsplan
+          </div>
+        )}
+
+        {smDate && bpDate && (
+          <div style={{ display: 'flex', gap: 10, marginBottom: 4 }}>
+            <div className="result-item" style={{ flex: 1 }}>
+              <div className="val">{smDate.toLocaleDateString('sv-SE')}</div>
+              <div className="lbl">SM-datum</div>
+            </div>
+            <div className="result-item" style={{ flex: 1 }}>
+              <div className="val">{bpDate.toLocaleDateString('sv-SE')}</div>
+              <div className="lbl">BP-datum</div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {bookings && (
+        <div className="card">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, paddingBottom: 10, borderBottom: '1px solid var(--border)' }}>
+            <h2 style={{ margin: 0, padding: 0, border: 'none' }}>Besöksdatum</h2>
+            <button onClick={handleCopy} style={{
+              padding: '6px 14px', borderRadius: 6, border: '1.5px solid var(--border)',
+              background: copied ? '#c8efd4' : 'white', color: copied ? '#1a6633' : 'var(--text-muted)',
+              fontSize: '0.8rem', fontWeight: 500, cursor: 'pointer', transition: 'all 0.2s'
+            }}>
+              {copied ? '✓ Kopierat!' : '📋 Kopiera alla'}
+            </button>
+          </div>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Besök</th>
+                <th>Vecka</th>
+                <th>Datum</th>
+              </tr>
+            </thead>
+            <tbody>
+              {bookings.map(b => (
+                <tr key={b.nr} style={{ opacity: b.isPast ? 0.45 : 1 }}
+                  className={b.isCurrent ? 'highlight' : ''}>
+                  <td><strong>{b.nr}</strong></td>
+                  <td style={{ whiteSpace: 'nowrap', color: 'var(--text-muted)', fontSize: '0.82rem' }}>
+                    {b.single
+                      ? `${b.weekMin}+${b.dayMin}`
+                      : `${b.weekMin}+${b.dayMin} – ${b.weekMax}+${b.dayMax}`}
+                  </td>
+                  <td style={{ fontSize: '0.88rem' }}>
+                    {b.single
+                      ? <span>{formatDateFull(b.fromDate)}{b.isCurrent && <span style={{ marginLeft: 6, fontSize: '0.75rem', color: 'var(--pink-dark)', fontWeight: 600 }}>← idag</span>}</span>
+                      : <span>{formatDateShort(b.fromDate)} – {formatDateShort(b.toDate)}{b.isCurrent && <span style={{ marginLeft: 6, fontSize: '0.75rem', color: 'var(--pink-dark)', fontWeight: 600 }}>← nu</span>}</span>
+                    }
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      <div className="info-note">
+        Baserat på basprogrammet för mödravård. Det första besöket (inskrivning) sker vanligtvis vecka 8–10
+        och ingår inte i denna plan. Passerade besök visas nedtonade.
+      </div>
+    </div>
+  );
+}
+
 // ─── App shell ───────────────────────────────────────────────────────────────
 
 const TABS = [
-  { id: 'sm',  label: '📅 SM & VP' },
-  { id: 'ul',  label: '🔬 Ultraljud' },
-  { id: 'sf',  label: '📐 SF-mått' },
-  { id: 'bmi', label: '⚖️ BMI & Vikt' },
+  { id: 'sm',      label: '📅 SM & BP' },
+  { id: 'bokning', label: '📋 Bokningsplan' },
+  { id: 'ul',      label: '🔬 Ultraljud' },
+  { id: 'sf',      label: '📐 SF-mått' },
+  { id: 'bmi',     label: '⚖️ BMI & Vikt' },
 ];
 
 function App() {
@@ -952,10 +1276,11 @@ function App() {
         ))}
       </nav>
       <main>
-        {tab === 'sm' && <SMTab />}
-        {tab === 'ul' && <ULJudTab />}
-        {tab === 'sf' && <SFTab />}
-        {tab === 'bmi' && <BMITab />}
+        {tab === 'sm'      && <SMTab />}
+        {tab === 'bokning' && <BokningsTab />}
+        {tab === 'ul'      && <ULJudTab />}
+        {tab === 'sf'      && <SFTab />}
+        {tab === 'bmi'     && <BMITab />}
       </main>
     </>
   );
