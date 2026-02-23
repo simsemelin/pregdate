@@ -11,18 +11,18 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --pink: #e8a0a0;
-      --pink-light: #f5d5d5;
-      --pink-dark: #c97070;
-      --blue: #4a7fa5;
-      --blue-light: #d0e4f0;
-      --text: #2c2c2c;
-      --text-muted: #666;
-      --bg: #fdf6f6;
+      --burg: #6b1d2e;
+      --burg-mid: #8c2d40;
+      --burg-light: #f2e6e9;
+      --burg-xlight: #faf3f4;
+      --accent: #c0394f;
+      --text: #1a1a1a;
+      --text-muted: #6b6b6b;
+      --bg: #f7f0f1;
       --card: #ffffff;
-      --border: #e0c8c8;
+      --border: #ddc8cc;
       --radius: 12px;
-      --shadow: 0 2px 12px rgba(0,0,0,0.08);
+      --shadow: 0 2px 14px rgba(107,29,46,0.10);
     }
 
     body {
@@ -33,19 +33,19 @@
     }
 
     header {
-      background: linear-gradient(135deg, var(--pink-dark) 0%, var(--pink) 100%);
+      background: linear-gradient(135deg, var(--burg) 0%, var(--burg-mid) 100%);
       color: white;
-      padding: 24px 20px 20px;
+      padding: 28px 20px 22px;
       text-align: center;
     }
 
-    header h1 { font-size: 1.8rem; font-weight: 700; letter-spacing: -0.5px; }
-    header p { font-size: 0.9rem; opacity: 0.85; margin-top: 4px; }
+    header h1 { font-size: 1.9rem; font-weight: 800; letter-spacing: -0.5px; }
+    header p { font-size: 0.9rem; opacity: 0.75; margin-top: 5px; letter-spacing: 0.3px; }
 
     nav {
       display: flex;
       background: white;
-      border-bottom: 1px solid var(--border);
+      border-bottom: 2px solid var(--border);
       overflow-x: auto;
     }
 
@@ -57,21 +57,22 @@
       background: none;
       cursor: pointer;
       font-size: 0.82rem;
-      font-weight: 500;
+      font-weight: 600;
       color: var(--text-muted);
       border-bottom: 3px solid transparent;
       transition: all 0.15s;
       white-space: nowrap;
+      letter-spacing: 0.2px;
     }
 
     nav button.active {
-      color: var(--pink-dark);
-      border-bottom-color: var(--pink-dark);
+      color: var(--burg);
+      border-bottom-color: var(--burg);
     }
 
     nav button:hover:not(.active) {
-      background: var(--pink-light);
-      color: var(--text);
+      background: var(--burg-xlight);
+      color: var(--burg-mid);
     }
 
     main {
@@ -86,12 +87,13 @@
       box-shadow: var(--shadow);
       padding: 24px;
       margin-bottom: 20px;
+      border: 1px solid var(--border);
     }
 
     .card h2 {
       font-size: 1.05rem;
-      font-weight: 600;
-      color: var(--blue);
+      font-weight: 700;
+      color: var(--burg);
       margin-bottom: 16px;
       padding-bottom: 10px;
       border-bottom: 1px solid var(--border);
@@ -100,9 +102,11 @@
     label {
       display: block;
       font-size: 0.85rem;
-      font-weight: 500;
+      font-weight: 600;
       color: var(--text-muted);
       margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
     }
 
     input[type="date"], input[type="number"] {
@@ -119,7 +123,8 @@
 
     input:focus {
       outline: none;
-      border-color: var(--pink-dark);
+      border-color: var(--burg);
+      box-shadow: 0 0 0 3px rgba(107,29,46,0.08);
     }
 
     .field { margin-bottom: 16px; }
@@ -131,24 +136,27 @@
     }
 
     .result-box {
-      background: var(--pink-light);
+      background: var(--burg-light);
       border-radius: 10px;
       padding: 16px 20px;
       margin-top: 8px;
     }
 
-    .result-box.blue { background: var(--blue-light); }
+    .result-box.blue { background: #e8eef5; }
 
     .result-main {
       font-size: 1.6rem;
-      font-weight: 700;
-      color: var(--pink-dark);
+      font-weight: 800;
+      color: var(--burg);
     }
 
-    .result-box.blue .result-main { color: var(--blue); }
+    .result-box.blue .result-main { color: #2a5080; }
 
     .result-label {
-      font-size: 0.8rem;
+      font-size: 0.78rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
       color: var(--text-muted);
       margin-bottom: 4px;
     }
@@ -167,27 +175,31 @@
     }
 
     .result-item {
-      background: white;
+      background: var(--burg-xlight);
       border-radius: 8px;
       padding: 12px 14px;
       border: 1px solid var(--border);
     }
 
     .result-item .val {
-      font-size: 1.2rem;
+      font-size: 1.15rem;
       font-weight: 700;
-      color: var(--blue);
+      color: var(--burg);
     }
 
     .result-item .lbl {
-      font-size: 0.78rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
       color: var(--text-muted);
+      margin-top: 2px;
     }
 
     .progress-bar-wrap {
       background: white;
       border-radius: 20px;
-      height: 10px;
+      height: 8px;
       margin-top: 12px;
       overflow: hidden;
       border: 1px solid var(--border);
@@ -195,7 +207,7 @@
 
     .progress-bar {
       height: 100%;
-      background: linear-gradient(90deg, var(--pink) 0%, var(--pink-dark) 100%);
+      background: linear-gradient(90deg, var(--burg-mid) 0%, var(--accent) 100%);
       border-radius: 20px;
       transition: width 0.4s ease;
     }
@@ -212,14 +224,15 @@
       display: inline-block;
       padding: 3px 10px;
       border-radius: 20px;
-      font-size: 0.78rem;
-      font-weight: 600;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.3px;
       margin-top: 8px;
     }
 
     .t1 { background: #fde8b4; color: #7a5200; }
     .t2 { background: #c8efd4; color: #1a6633; }
-    .t3 { background: #d0e4f0; color: #1a4a6e; }
+    .t3 { background: var(--burg-light); color: var(--burg); }
 
     table {
       width: 100%;
@@ -228,33 +241,36 @@
     }
 
     th {
-      background: var(--pink-light);
-      color: var(--pink-dark);
-      padding: 8px 10px;
+      background: var(--burg);
+      color: white;
+      padding: 9px 10px;
       text-align: left;
-      font-weight: 600;
-      font-size: 0.78rem;
+      font-weight: 700;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
     }
 
     td {
-      padding: 7px 10px;
+      padding: 8px 10px;
       border-bottom: 1px solid var(--border);
     }
 
     tr:last-child td { border-bottom: none; }
-    tr:nth-child(even) td { background: #fdf6f6; }
+    tr:nth-child(even) td { background: var(--burg-xlight); }
 
     tr.highlight td {
-      background: var(--pink-light);
+      background: var(--burg-light);
       font-weight: 600;
-      color: var(--pink-dark);
+      color: var(--burg);
     }
 
     .info-note {
       font-size: 0.78rem;
       color: var(--text-muted);
-      background: #f5f5f5;
-      border-radius: 8px;
+      background: var(--burg-xlight);
+      border-left: 3px solid var(--burg-mid);
+      border-radius: 0 8px 8px 0;
       padding: 10px 14px;
       margin-top: 12px;
       line-height: 1.5;
@@ -500,7 +516,7 @@ function SMTab() {
     fontSize: '0.85rem',
     fontWeight: 500,
     background: active ? 'white' : 'transparent',
-    color: active ? 'var(--pink-dark)' : 'var(--text-muted)',
+    color: active ? 'var(--burg)' : 'var(--text-muted)',
     boxShadow: active ? '0 1px 4px rgba(0,0,0,0.1)' : 'none',
     transition: 'all 0.15s',
   });
@@ -598,6 +614,7 @@ function SMTab() {
       </div>
 
       {result && !result.future && <WeekLookup smDate={result.smDate} currentWeeks={result.weeks} />}
+      {result && !result.future && <BokningsInline smDate={result.smDate} />}
 
       <div className="info-note">
         BP = SM + 280 dagar (39+6). Vid inmatning av BP räknas SM-datum bakåt med samma formel.
@@ -657,13 +674,90 @@ function WeekLookup({ smDate, currentWeeks }) {
             {weekDates.map(({ day, date }) => (
               <tr key={day} className={isToday(date) ? 'highlight' : ''}>
                 <td><strong>{lookupWeek}+{day}</strong></td>
-                <td>{formatShort(date)}{isToday(date) && <span style={{ marginLeft: 6, fontSize: '0.75rem', color: 'var(--pink-dark)', fontWeight: 600 }}>← idag</span>}</td>
+                <td>{formatShort(date)}{isToday(date) && <span style={{ marginLeft: 6, fontSize: '0.75rem', color: 'var(--burg)', fontWeight: 600 }}>← idag</span>}</td>
                 <td style={{ color: 'var(--text-muted)' }}>{getDayName(date)}</td>
               </tr>
             ))}
           </tbody>
         </table>
       )}
+    </div>
+  );
+}
+
+function BokningsInline({ smDate }) {
+  const [copied, setCopied] = useState(false);
+
+  const bookings = useMemo(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return BESOK.map(b => {
+      const fromDate = addDays(smDate, b.weekMin * 7 + b.dayMin + 1);
+      const toDate   = addDays(smDate, b.weekMax * 7 + b.dayMax + 1);
+      const single   = isSingleDay(b);
+      const isPast   = toDate < today;
+      const isCurrent = fromDate <= today && today <= toDate;
+      return { ...b, fromDate, toDate, single, isPast, isCurrent };
+    });
+  }, [smDate]);
+
+  const bpDate = addDays(smDate, 280);
+
+  const handleCopy = () => {
+    const lines = bookings.map(b =>
+      b.single
+        ? `${b.label} (${b.weekMin}+${b.dayMin}): ${formatDateFull(b.fromDate)}`
+        : `${b.label} (${b.weekMin}+${b.dayMin}–${b.weekMax}+${b.dayMax}): ${formatDateShort(b.fromDate)} – ${formatDateShort(b.toDate)}`
+    );
+    const header = `Bokningsplan\nSM: ${smDate.toLocaleDateString('sv-SE')} · BP: ${bpDate.toLocaleDateString('sv-SE')}\n\n`;
+    navigator.clipboard.writeText(header + lines.join('\n'));
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <div className="card">
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, paddingBottom: 10, borderBottom: '1px solid var(--border)' }}>
+        <h2 style={{ margin: 0, padding: 0, border: 'none' }}>📋 Bokningsplan – basprogrammet</h2>
+        <button onClick={handleCopy} style={{
+          padding: '6px 14px', borderRadius: 6, border: '1.5px solid var(--border)',
+          background: copied ? '#c8efd4' : 'white', color: copied ? '#1a6633' : 'var(--text-muted)',
+          fontSize: '0.8rem', fontWeight: 500, cursor: 'pointer', transition: 'all 0.2s'
+        }}>
+          {copied ? '✓ Kopierat!' : '📋 Kopiera alla'}
+        </button>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Besök</th>
+            <th>Vecka</th>
+            <th>Datum</th>
+          </tr>
+        </thead>
+        <tbody>
+          {bookings.map(b => (
+            <tr key={b.nr} style={{ opacity: b.isPast ? 0.45 : 1 }}
+              className={b.isCurrent ? 'highlight' : ''}>
+              <td><strong>{b.nr}</strong></td>
+              <td style={{ whiteSpace: 'nowrap', color: 'var(--text-muted)', fontSize: '0.82rem' }}>
+                {b.single
+                  ? `${b.weekMin}+${b.dayMin}`
+                  : `${b.weekMin}+${b.dayMin} – ${b.weekMax}+${b.dayMax}`}
+              </td>
+              <td style={{ fontSize: '0.88rem' }}>
+                {b.single
+                  ? <span>{formatDateFull(b.fromDate)}{b.isCurrent && <span style={{ marginLeft: 6, fontSize: '0.75rem', color: 'var(--burg)', fontWeight: 600 }}>← idag</span>}</span>
+                  : <span>{formatDateShort(b.fromDate)} – {formatDateShort(b.toDate)}{b.isCurrent && <span style={{ marginLeft: 6, fontSize: '0.75rem', color: 'var(--burg)', fontWeight: 600 }}>← nu</span>}</span>
+                }
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <div className="info-note" style={{ marginTop: 12 }}>
+        Det första besöket (inskrivning, vecka 8–10) ingår inte. Passerade besök visas nedtonade.
+      </div>
     </div>
   );
 }
@@ -972,7 +1066,7 @@ function BMITab() {
         <div className="field" style={{ marginTop: 16 }}>
           <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
             <input type="checkbox" checked={twins} onChange={e => setTwins(e.target.checked)}
-              style={{ width: 'auto', accentColor: 'var(--pink-dark)' }} />
+              style={{ width: 'auto', accentColor: 'var(--burg)' }} />
             Tvillinggraviditet
           </label>
         </div>
@@ -997,7 +1091,7 @@ function BMITab() {
           {currentGain !== null && (
             <div className="result-grid">
               <div className="result-item">
-                <div className="val" style={{ color: currentGain >= 0 ? 'var(--blue)' : 'var(--pink-dark)' }}>
+                <div className="val" style={{ color: currentGain >= 0 ? 'var(--burg)' : 'var(--accent)' }}>
                   {currentGain >= 0 ? '+' : ''}{currentGain} kg
                 </div>
                 <div className="lbl">Faktisk viktuppgång</div>
@@ -1147,7 +1241,7 @@ function BokningsTab() {
     flex: 1, padding: '8px 12px', border: 'none', borderRadius: 6, cursor: 'pointer',
     fontSize: '0.85rem', fontWeight: 500,
     background: active ? 'white' : 'transparent',
-    color: active ? 'var(--pink-dark)' : 'var(--text-muted)',
+    color: active ? 'var(--burg)' : 'var(--text-muted)',
     boxShadow: active ? '0 1px 4px rgba(0,0,0,0.1)' : 'none',
     transition: 'all 0.15s',
   });
@@ -1229,8 +1323,8 @@ function BokningsTab() {
                   </td>
                   <td style={{ fontSize: '0.88rem' }}>
                     {b.single
-                      ? <span>{formatDateFull(b.fromDate)}{b.isCurrent && <span style={{ marginLeft: 6, fontSize: '0.75rem', color: 'var(--pink-dark)', fontWeight: 600 }}>← idag</span>}</span>
-                      : <span>{formatDateShort(b.fromDate)} – {formatDateShort(b.toDate)}{b.isCurrent && <span style={{ marginLeft: 6, fontSize: '0.75rem', color: 'var(--pink-dark)', fontWeight: 600 }}>← nu</span>}</span>
+                      ? <span>{formatDateFull(b.fromDate)}{b.isCurrent && <span style={{ marginLeft: 6, fontSize: '0.75rem', color: 'var(--burg)', fontWeight: 600 }}>← idag</span>}</span>
+                      : <span>{formatDateShort(b.fromDate)} – {formatDateShort(b.toDate)}{b.isCurrent && <span style={{ marginLeft: 6, fontSize: '0.75rem', color: 'var(--burg)', fontWeight: 600 }}>← nu</span>}</span>
                     }
                   </td>
                 </tr>
@@ -1251,11 +1345,8 @@ function BokningsTab() {
 // ─── App shell ───────────────────────────────────────────────────────────────
 
 const TABS = [
-  { id: 'sm',      label: '📅 SM & BP' },
-  { id: 'bokning', label: '📋 Bokningsplan' },
-  { id: 'ul',      label: '🔬 Ultraljud' },
-  { id: 'sf',      label: '📐 SF-mått' },
-  { id: 'bmi',     label: '⚖️ BMI & Vikt' },
+  { id: 'sm',  label: '📅 SM & BP' },
+  { id: 'bmi', label: '⚖️ BMI & Vikt' },
 ];
 
 function App() {
@@ -1276,11 +1367,8 @@ function App() {
         ))}
       </nav>
       <main>
-        {tab === 'sm'      && <SMTab />}
-        {tab === 'bokning' && <BokningsTab />}
-        {tab === 'ul'      && <ULJudTab />}
-        {tab === 'sf'      && <SFTab />}
-        {tab === 'bmi'     && <BMITab />}
+        {tab === 'sm'  && <SMTab />}
+        {tab === 'bmi' && <BMITab />}
       </main>
     </>
   );
