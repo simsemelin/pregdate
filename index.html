@@ -731,8 +731,9 @@ function BokningsInline({ smDate }) {
         <thead>
           <tr>
             <th>Besök</th>
-            <th>Vecka</th>
+            <th>Grav.v</th>
             <th>Datum</th>
+            <th>Kal.v</th>
           </tr>
         </thead>
         <tbody>
@@ -750,6 +751,10 @@ function BokningsInline({ smDate }) {
                   ? <span>{formatDateFull(b.fromDate)}{b.isCurrent && <span style={{ marginLeft: 6, fontSize: '0.75rem', color: 'var(--burg)', fontWeight: 600 }}>← idag</span>}</span>
                   : <span>{formatDateShort(b.fromDate)} – {formatDateShort(b.toDate)}{b.isCurrent && <span style={{ marginLeft: 6, fontSize: '0.75rem', color: 'var(--burg)', fontWeight: 600 }}>← nu</span>}</span>
                 }
+              </td>
+              <td style={{ whiteSpace: 'nowrap', fontWeight: 600, fontSize: '0.82rem' }}>
+                {getCalWeek(b.fromDate)}
+                {!b.single && getCalWeek(b.fromDate) !== getCalWeek(b.toDate) && `–${getCalWeek(b.toDate)}`}
               </td>
             </tr>
           ))}
@@ -1175,6 +1180,15 @@ function formatDateShort(date) {
 
 function formatDateFull(date) {
   return date.toLocaleDateString('sv-SE', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+}
+
+function getCalWeek(date) {
+  // ISO 8601 calendar week
+  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  const week = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+  return `v.${week}`;
 }
 
 function isSingleDay(besok) {
