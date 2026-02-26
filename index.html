@@ -482,7 +482,7 @@ function SMTab() {
     const vpDate = new Date(smDate);
     vpDate.setDate(vpDate.getDate() + 280);
 
-    const daysSinceSM = Math.floor((today - smDate) / (1000 * 60 * 60 * 24));
+    const daysSinceSM = Math.floor((today - smDate) / (1000 * 60 * 60 * 24)) - 1;
     const daysLeft = Math.floor((vpDate - today) / (1000 * 60 * 60 * 24));
 
     if (daysSinceSM < 0) {
