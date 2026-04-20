@@ -462,6 +462,7 @@ function SMTab() {
   const [mode, setMode] = useState('sm'); // 'sm' | 'vp'
   const [sm, setSm] = useState('');
   const [vp, setVp] = useState('');
+  const [twins, setTwins] = useState(false);
 
   const result = useMemo(() => {
     // Derive SM date depending on mode
@@ -542,6 +543,17 @@ function SMTab() {
           </div>
         )}
 
+        <div className="field" style={{ marginTop: 4 }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', textTransform: 'none', letterSpacing: 0 }}>
+            <input type="checkbox" checked={twins} onChange={e => setTwins(e.target.checked)}
+              style={{ width: 18, height: 18, accentColor: 'var(--burg)', cursor: 'pointer' }} />
+            <span style={{ fontSize: '0.92rem', fontWeight: 600, color: twins ? 'var(--burg)' : 'var(--text-muted)' }}>
+              Tvillinggraviditet
+            </span>
+            {twins && <span style={{ fontSize: '0.78rem', background: 'var(--burg-light)', color: 'var(--burg)', borderRadius: 12, padding: '2px 8px', fontWeight: 700 }}>Tvilling</span>}
+          </label>
+        </div>
+
         {mode === 'vp' && (
           <div className="field">
             <label>BP – Beräknat förlossningsdatum (beräknat datum)</label>
@@ -614,7 +626,7 @@ function SMTab() {
       </div>
 
       {result && !result.future && <WeekLookup smDate={result.smDate} currentWeeks={result.weeks} />}
-      {result && !result.future && <BokningsInline smDate={result.smDate} />}
+      {result && !result.future && <BokningsInline smDate={result.smDate} twins={twins} />}
 
       <div className="info-note">
         BP = SM + 280 dagar (39+6). Vid inmatning av BP räknas SM-datum bakåt med samma formel.
@@ -685,13 +697,15 @@ function WeekLookup({ smDate, currentWeeks }) {
   );
 }
 
-function BokningsInline({ smDate }) {
+function BokningsInline({ smDate, twins }) {
   const [copied, setCopied] = useState(false);
+
+  const besokLista = twins ? BESOK_TVILLING : BESOK;
 
   const bookings = useMemo(() => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    return BESOK.map(b => {
+    return besokLista.map(b => {
       const fromDate = addDays(smDate, b.weekMin * 7 + b.dayMin + 1);
       const toDate   = addDays(smDate, b.weekMax * 7 + b.dayMax + 1);
       const single   = isSingleDay(b);
@@ -699,7 +713,7 @@ function BokningsInline({ smDate }) {
       const isCurrent = fromDate <= today && today <= toDate;
       return { ...b, fromDate, toDate, single, isPast, isCurrent };
     });
-  }, [smDate]);
+  }, [smDate, besokLista]);
 
   const bpDate = addDays(smDate, 280);
 
@@ -718,7 +732,9 @@ function BokningsInline({ smDate }) {
   return (
     <div className="card">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, paddingBottom: 10, borderBottom: '1px solid var(--border)' }}>
-        <h2 style={{ margin: 0, padding: 0, border: 'none' }}>📋 Bokningsplan – basprogrammet</h2>
+        <h2 style={{ margin: 0, padding: 0, border: 'none' }}>
+          📋 Bokningsplan – {twins ? 'tvillingprogram' : 'basprogrammet'}
+        </h2>
         <button onClick={handleCopy} style={{
           padding: '6px 14px', borderRadius: 6, border: '1.5px solid var(--border)',
           background: copied ? '#c8efd4' : 'white', color: copied ? '#1a6633' : 'var(--text-muted)',
@@ -761,7 +777,10 @@ function BokningsInline({ smDate }) {
         </tbody>
       </table>
       <div className="info-note" style={{ marginTop: 12 }}>
-        Det första besöket (inskrivning, vecka 8–10) ingår inte. Passerade besök visas nedtonade.
+        {twins
+          ? 'Tvillingprogram: besök 2–3 som ordinarie, därefter varannan vecka fr.o.m. v.22 t.o.m. v.38. Programmet avslutas vid v.38.'
+          : 'Det första besöket (inskrivning, vecka 8–10) ingår inte. Passerade besök visas nedtonade.'
+        }
       </div>
     </div>
   );
@@ -1166,6 +1185,21 @@ const BESOK = [
   { nr: 9,  label: 'Nionde besöket',  weekMin: 39, dayMin: 0, weekMax: 39, dayMax: 6 },
   { nr: 10, label: 'Tionde besöket',  weekMin: 40, dayMin: 0, weekMax: 40, dayMax: 6 },
   { nr: 11, label: 'Elfte besöket',   weekMin: 41, dayMin: 0, weekMax: 41, dayMax: 0 },
+];
+
+// Tvillingprogram: besök 2–3 samma som ordinarie, därefter varannan vecka fr.o.m. v.22 t.o.m. v.38
+const BESOK_TVILLING = [
+  { nr: 2,  label: 'Andra besöket',   weekMin: 10, dayMin: 2, weekMax: 12, dayMax: 0 },
+  { nr: 3,  label: 'Tredje besöket',  weekMin: 20, dayMin: 0, weekMax: 20, dayMax: 6 },
+  { nr: 4,  label: 'Fjärde besöket',  weekMin: 22, dayMin: 0, weekMax: 22, dayMax: 6 },
+  { nr: 5,  label: 'Femte besöket',   weekMin: 24, dayMin: 0, weekMax: 24, dayMax: 6 },
+  { nr: 6,  label: 'Sjätte besöket',  weekMin: 26, dayMin: 0, weekMax: 26, dayMax: 6 },
+  { nr: 7,  label: 'Sjunde besöket',  weekMin: 28, dayMin: 0, weekMax: 28, dayMax: 6 },
+  { nr: 8,  label: 'Åttonde besöket', weekMin: 30, dayMin: 0, weekMax: 30, dayMax: 6 },
+  { nr: 9,  label: 'Nionde besöket',  weekMin: 32, dayMin: 0, weekMax: 32, dayMax: 6 },
+  { nr: 10, label: 'Tionde besöket',  weekMin: 34, dayMin: 0, weekMax: 34, dayMax: 6 },
+  { nr: 11, label: 'Elfte besöket',   weekMin: 36, dayMin: 0, weekMax: 36, dayMax: 6 },
+  { nr: 12, label: 'Tolfte besöket',  weekMin: 38, dayMin: 0, weekMax: 38, dayMax: 6 },
 ];
 
 function addDays(date, days) {
